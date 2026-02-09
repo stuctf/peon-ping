@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>claude-peon — Stop babysitting your terminal</title>
+<meta name="description" content="Warcraft III Peon voice lines as Claude Code notifications. Never miss when Claude needs you.">
+<meta property="og:title" content="claude-peon — Stop babysitting your terminal">
+<meta property="og:description" content="Warcraft III Peon voice lines as Claude Code notifications. Never miss when Claude needs you.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* --- Reset & Base --- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: #0a0a0f;
+  color: #e0d8c8;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* --- Ambient background --- */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(212,168,67,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(62,128,255,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(212,168,67,0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --- Layout --- */
+.container { max-width: 860px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+section { padding: 80px 0; }
+
+/* --- Typography --- */
+h1, h2, h3 { line-height: 1.2; }
+a { color: #d4a843; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* --- Hero --- */
+.hero { padding: 100px 0 60px; text-align: center; }
+.hero-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: #d4a843;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 600;
+  color: #f4f7ff;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+}
+.hero-sub {
+  font-size: clamp(1rem, 2.5vw, 1.15rem);
+  color: #9ca8c5;
+  max-width: 540px;
+  margin: 0 auto 36px;
+  line-height: 1.7;
+}
+.hero-sub strong { color: #d4a843; font-weight: 500; }
+
+/* --- Install command --- */
+.install-block {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: #080d1a;
+  border: 1px solid #222233;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: #e0e8ff;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.install-block:hover { border-color: #d4a843; }
+.install-block code { white-space: nowrap; }
+.copy-btn {
+  background: none;
+  border: none;
+  color: #7b818d;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 1rem;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+.copy-btn:hover { color: #d4a843; }
+.copy-btn.copied { color: #4ade80; }
+
+/* --- Section headers --- */
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: #d4a843;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  opacity: 0.7;
+}
+.section-title {
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  font-weight: 600;
+  color: #f4f7ff;
+  margin-bottom: 16px;
+}
+.section-desc {
+  color: #9ca8c5;
+  max-width: 520px;
+  margin-bottom: 40px;
+  font-size: 0.95rem;
+}
+
+/* --- Problem section: 3-step pain cycle --- */
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.problem-card {
+  background: #080d1a;
+  border: 1px solid #1a1f33;
+  border-radius: 10px;
+  padding: 28px 24px;
+}
+.problem-num {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #d4a843;
+  opacity: 0.4;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+.problem-card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e0e8ff;
+  margin-bottom: 8px;
+}
+.problem-card p {
+  font-size: 0.85rem;
+  color: #7b818d;
+  line-height: 1.5;
+}
+
+/* --- Fix section: Before/After table --- */
+.fix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.fix-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 12px 16px;
+  border-bottom: 1px solid #222233;
+}
+.fix-table th:first-child { color: #9ca8c5; }
+.fix-table th.col-without { color: #505a79; }
+.fix-table th.col-with { color: #d4a843; }
+.fix-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #111828;
+  vertical-align: top;
+}
+.fix-table tr:last-child td { border-bottom: none; }
+.fix-table td:first-child {
+  color: #e0e8ff;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.fix-table td.col-without {
+  color: #505a79;
+  font-style: italic;
+}
+.fix-table td.col-with {
+  color: #d4a843;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+}
+.fix-table-wrap {
+  background: #080d1a;
+  border: 1px solid #1a1f33;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* --- Audio demo grid --- */
+.audio-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.audio-card {
+  background: #080d1a;
+  border: 1px solid #1a1f33;
+  border-radius: 10px;
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  user-select: none;
+}
+.audio-card:hover { border-color: #2a3453; background: #0c1120; }
+.audio-card.playing { border-color: #d4a843; background: #0f1525; }
+.audio-quote {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #e0d8c8;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+.audio-file {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: #505a79;
+}
+.audio-play-icon {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(212,168,67,0.1);
+  border: 1px solid rgba(212,168,67,0.2);
+  margin-bottom: 12px;
+  line-height: 32px;
+  font-size: 0.85rem;
+  color: #d4a843;
+  transition: background 0.2s;
+}
+.audio-card:hover .audio-play-icon { background: rgba(212,168,67,0.15); }
+.audio-card.playing .audio-play-icon { background: rgba(212,168,67,0.25); }
+
+/* --- Terminal animation --- */
+.terminal-wrap {
+  background: #1a1b26;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #222233;
+}
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #12131e;
+  border-bottom: 1px solid #222233;
+}
+.terminal-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+}
+.terminal-dot.red { background: #ff5f57; }
+.terminal-dot.yellow { background: #febc2e; }
+.terminal-dot.green { background: #28c840; }
+.terminal-bar-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: #505a79;
+  margin-left: auto;
+}
+.terminal-body {
+  padding: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  line-height: 1.8;
+  min-height: 280px;
+}
+.term-line {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.term-line.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.term-prompt { color: #4ade80; }
+.term-cmd { color: #e0e8ff; }
+.term-sound { color: #d4a843; }
+.term-dim { color: #505a79; }
+.term-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.1em;
+  background: #4ade80;
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* --- Features strip --- */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.feature-card {
+  background: #080d1a;
+  border: 1px solid #1a1f33;
+  border-radius: 10px;
+  padding: 24px 16px;
+  text-align: center;
+}
+.feature-icon {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+.feature-card h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e0e8ff;
+  margin-bottom: 6px;
+}
+.feature-card p {
+  font-size: 0.75rem;
+  color: #7b818d;
+  line-height: 1.4;
+}
+
+/* --- Footer --- */
+footer {
+  padding: 40px 0 60px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #505a79;
+  border-top: 1px solid #111828;
+}
+footer p { margin-bottom: 6px; }
+footer a { color: #7b818d; }
+footer a:hover { color: #d4a843; }
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  section { padding: 48px 0; }
+  .hero { padding: 64px 0 40px; }
+  .problem-grid { grid-template-columns: 1fr; }
+  .fix-table { font-size: 0.8rem; }
+  .fix-table td, .fix-table th { padding: 10px 12px; }
+  .fix-table td:first-child { white-space: normal; }
+  .audio-grid { grid-template-columns: repeat(2, 1fr); }
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .features-grid .feature-card:last-child {
+    grid-column: 1 / -1;
+  }
+  .install-block { font-size: 0.75rem; padding: 10px 12px; }
+}
+
+/* --- Peon mascot --- */
+.hero-mascot {
+  margin-bottom: 20px;
+}
+.peon-avatar {
+  width: 140px;
+  height: 140px;
+  filter: drop-shadow(0 0 24px rgba(212,168,67,0.12));
+  transition: filter 0.3s;
+}
+.peon-avatar:hover {
+  filter: drop-shadow(0 0 36px rgba(212,168,67,0.3));
+}
+
+/* --- Terminal sound toggle --- */
+.terminal-sound-toggle {
+  background: none;
+  border: 1px solid #333;
+  color: #505a79;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-left: auto;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+.terminal-sound-toggle:hover { color: #9ca8c5; border-color: #555; }
+.terminal-sound-toggle.active {
+  color: #d4a843;
+  border-color: rgba(212,168,67,0.4);
+  background: rgba(212,168,67,0.05);
+}
+.terminal-sound-toggle svg { flex-shrink: 0; }
+
+/* --- Terminal in hero (compact) --- */
+.terminal-hero { padding: 0 0 40px; }
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+<div class="container">
+  <div class="hero-mascot">
+    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" class="peon-avatar" aria-label="Peon mascot">
+      <defs>
+        <clipPath id="portrait-clip"><circle cx="60" cy="60" r="55"/></clipPath>
+        <radialGradient id="face-grad" cx="50%" cy="40%" r="60%">
+          <stop offset="0%" stop-color="#5a8a48"/>
+          <stop offset="100%" stop-color="#3a6530"/>
+        </radialGradient>
+      </defs>
+      <!-- Gold frame -->
+      <circle cx="60" cy="60" r="58" fill="none" stroke="#d4a843" stroke-width="2.5"/>
+      <circle cx="60" cy="60" r="56" fill="#080d1a"/>
+      <!-- Portrait -->
+      <g clip-path="url(#portrait-clip)">
+        <!-- Shoulders/vest -->
+        <ellipse cx="60" cy="116" rx="50" ry="25" fill="#5a3a1a"/>
+        <ellipse cx="60" cy="116" rx="38" ry="20" fill="#4a2e15"/>
+        <line x1="44" y1="90" x2="36" y2="130" stroke="#6b4420" stroke-width="4.5" stroke-linecap="round"/>
+        <line x1="76" y1="90" x2="84" y2="130" stroke="#6b4420" stroke-width="4.5" stroke-linecap="round"/>
+        <!-- Neck -->
+        <rect x="46" y="82" width="28" height="16" rx="8" fill="url(#face-grad)"/>
+        <!-- Head -->
+        <ellipse cx="60" cy="54" rx="35" ry="33" fill="url(#face-grad)"/>
+        <!-- Ears -->
+        <ellipse cx="25" cy="50" rx="8" ry="13" fill="#3d6a30" transform="rotate(-12,25,50)"/>
+        <ellipse cx="95" cy="50" rx="8" ry="13" fill="#3d6a30" transform="rotate(12,95,50)"/>
+        <ellipse cx="25" cy="50" rx="5" ry="9" fill="#4a7a3b" transform="rotate(-12,25,50)"/>
+        <ellipse cx="95" cy="50" rx="5" ry="9" fill="#4a7a3b" transform="rotate(12,95,50)"/>
+        <!-- Headband -->
+        <path d="M24 40 Q60 27 96 40" stroke="#c62828" stroke-width="9" fill="none" stroke-linecap="round"/>
+        <path d="M24 40 Q60 27 96 40" stroke="#e53935" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.3"/>
+        <!-- Brow ridge -->
+        <path d="M36 48 Q46 44 56 47" stroke="#2a5420" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+        <path d="M64 47 Q74 44 84 48" stroke="#2a5420" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+        <!-- Eye sockets -->
+        <ellipse cx="46" cy="55" rx="10" ry="8" fill="#1a3a12"/>
+        <ellipse cx="74" cy="55" rx="10" ry="8" fill="#1a3a12"/>
+        <!-- Eyes -->
+        <ellipse cx="46" cy="55" rx="7" ry="6" fill="#111"/>
+        <ellipse cx="74" cy="55" rx="7" ry="6" fill="#111"/>
+        <circle cx="48" cy="54" r="4" fill="#e8b830"/>
+        <circle cx="76" cy="54" r="4" fill="#e8b830"/>
+        <circle cx="49" cy="54" r="2" fill="#111"/>
+        <circle cx="77" cy="54" r="2" fill="#111"/>
+        <circle cx="50" cy="52.5" r="1.5" fill="#fff" opacity="0.45"/>
+        <circle cx="78" cy="52.5" r="1.5" fill="#fff" opacity="0.45"/>
+        <!-- Nose -->
+        <ellipse cx="60" cy="67" rx="11" ry="8" fill="#3a6530"/>
+        <ellipse cx="60" cy="68" rx="9" ry="6" fill="#346028"/>
+        <circle cx="55" cy="69" r="3" fill="#254a1c"/>
+        <circle cx="65" cy="69" r="3" fill="#254a1c"/>
+        <!-- Tusks -->
+        <path d="M42 79 Q39 71 40 64" stroke="#f0e8d0" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <path d="M78 79 Q81 71 80 64" stroke="#f0e8d0" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <!-- Jaw -->
+        <path d="M46 80 Q60 86 74 80" stroke="#2a5420" stroke-width="2" fill="none"/>
+      </g>
+    </svg>
+  </div>
+  <p class="hero-label">claude-peon</p>
+  <h1>Stop babysitting your terminal</h1>
+  <p class="hero-sub">
+    Claude Code doesn't notify you when it's done or needs permission.
+    You tab away, lose focus, and waste 15 minutes getting back into flow.
+    <strong>Fix it with Peon voice lines.</strong>
+  </p>
+  <div class="install-block" onclick="copyInstall(this)" title="Click to copy">
+    <code>curl -fsSL https://raw.githubusercontent.com/tonysheng/claude-peon/main/install.sh | bash</code>
+    <button class="copy-btn" aria-label="Copy to clipboard">&#x2398;</button>
+  </div>
+</div>
+</section>
+
+<!-- ============ TERMINAL DEMO ============ -->
+<section class="terminal-hero" id="terminal">
+<div class="container">
+  <div class="terminal-wrap" id="terminalDemo">
+    <div class="terminal-bar">
+      <span class="terminal-dot red"></span>
+      <span class="terminal-dot yellow"></span>
+      <span class="terminal-dot green"></span>
+      <span class="terminal-bar-title">peon-demo: ready</span>
+      <button class="terminal-sound-toggle" id="termSoundToggle" title="Play sounds with animation">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.5L4 5H1v6h3l4 3.5V1.5z"/><path class="sound-wave" d="M11 4.5a6.5 6.5 0 010 7M11 7a3 3 0 010 2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <span>sound</span>
+      </button>
+    </div>
+    <div class="terminal-body">
+      <div class="term-line" data-delay="300">
+        <span class="term-prompt">$ </span><span class="term-cmd">claude</span>
+      </div>
+      <div class="term-line" data-delay="900" data-sound="PeonReady1">
+        <span class="term-sound">&#x1f50a; "Ready to work?"</span>
+      </div>
+      <div class="term-line" data-delay="1800">
+        <span class="term-prompt">&gt; </span><span class="term-cmd">Fix the login bug in auth.ts</span>
+      </div>
+      <div class="term-line" data-delay="2600">
+        <span class="term-dim">  Claude is working...</span>
+      </div>
+      <div class="term-line" data-delay="3400">
+        <span class="term-dim">  [you tab to Slack]</span>
+      </div>
+      <div class="term-line" data-delay="4600" data-sound="PeonWhat4">
+        <span class="term-sound">&#x1f50a; "Something need doing?"</span>
+        <span class="term-dim"> &mdash; permission needed</span>
+      </div>
+      <div class="term-line" data-delay="5600">
+        <span class="term-dim">  [you hear it, switch back, approve]</span>
+      </div>
+      <div class="term-line" data-delay="6600">
+        <span class="term-dim">  Claude continues working...</span>
+      </div>
+      <div class="term-line" data-delay="7800" data-sound="PeonYes2">
+        <span class="term-sound">&#x1f50a; "Zug zug."</span>
+        <span class="term-dim"> &mdash; done</span>
+      </div>
+      <div class="term-line" data-delay="8600">
+        <span class="term-prompt">&gt; </span><span class="term-cursor"></span>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============ THE PROBLEM ============ -->
+<section id="problem">
+<div class="container">
+  <p class="section-label">The problem</p>
+  <h2 class="section-title">The focus-killer nobody talks about</h2>
+  <div class="problem-grid">
+    <div class="problem-card">
+      <div class="problem-num">1</div>
+      <h3>Claude works&hellip;</h3>
+      <p>You tab to Slack, Twitter, docs. You know it'll be a few minutes.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">2</div>
+      <h3>Claude finishes&hellip;</h3>
+      <p>No sound. No alert. It just sits there waiting silently.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">3</div>
+      <h3>You check back&hellip;</h3>
+      <p>10 minutes later. Flow state: gone. Context switch: 15-23 min to recover.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============ THE FIX ============ -->
+<section id="fix">
+<div class="container">
+  <p class="section-label">The fix</p>
+  <h2 class="section-title">Every event gets a voice line</h2>
+  <p class="section-desc">You'll never wonder "is Claude still working?" again.</p>
+  <div class="fix-table-wrap">
+    <table class="fix-table">
+      <thead>
+        <tr>
+          <th>When</th>
+          <th class="col-without">Without peon</th>
+          <th class="col-with">With peon</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Task finishes</td>
+          <td class="col-without">Silence</td>
+          <td class="col-with">"Zug zug."</td>
+        </tr>
+        <tr>
+          <td>Needs your permission</td>
+          <td class="col-without">Waiting. No alert.</td>
+          <td class="col-with">"Something need doing?"</td>
+        </tr>
+        <tr>
+          <td>Session starts</td>
+          <td class="col-without">Blank prompt</td>
+          <td class="col-with">"Ready to work?"</td>
+        </tr>
+        <tr>
+          <td>You spam 3+ prompts</td>
+          <td class="col-without">Nothing</td>
+          <td class="col-with">"Me not that kind of orc!"</td>
+        </tr>
+        <tr>
+          <td>Tool fails</td>
+          <td class="col-without">Error text scrolls by</td>
+          <td class="col-with">"Whaaat?"</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- ============ AUDIO DEMO ============ -->
+<section id="sounds">
+<div class="container">
+  <p class="section-label">Sound check</p>
+  <h2 class="section-title">Hear it for yourself</h2>
+  <p class="section-desc">Click any card to play. These are the actual sounds you'll hear.</p>
+  <div class="audio-grid">
+    <div class="audio-card" data-sound="PeonReady1">
+      <div class="audio-play-icon">&#9654;</div>
+      <div class="audio-quote">"Ready to work?"</div>
+      <div class="audio-file">greeting</div>
+    </div>
+    <div class="audio-card" data-sound="PeonYes3">
+      <div class="audio-play-icon">&#9654;</div>
+      <div class="audio-quote">"Work, work."</div>
+      <div class="audio-file">acknowledge</div>
+    </div>
+    <div class="audio-card" data-sound="PeonYes2">
+      <div class="audio-play-icon">&#9654;</div>
+      <div class="audio-quote">"Zug zug."</div>
+      <div class="audio-file">complete</div>
+    </div>
+    <div class="audio-card" data-sound="PeonYes4">
+      <div class="audio-play-icon">&#9654;</div>
+      <div class="audio-quote">"Okie dokie."</div>
+      <div class="audio-file">acknowledge</div>
+    </div>
+    <div class="audio-card" data-sound="PeonWhat4">
+      <div class="audio-play-icon">&#9654;</div>
+      <div class="audio-quote">"Something need doing?"</div>
+      <div class="audio-file">permission</div>
+    </div>
+    <div class="audio-card" data-sound="PeonAngry4">
+      <div class="audio-play-icon">&#9654;</div>
+      <div class="audio-quote">"Me not that kind of orc!"</div>
+      <div class="audio-file">annoyed</div>
+    </div>
+    <div class="audio-card" data-sound="PeonAngry1">
+      <div class="audio-play-icon">&#9654;</div>
+      <div class="audio-quote">"Whaaat?"</div>
+      <div class="audio-file">error</div>
+    </div>
+    <div class="audio-card" data-sound="PeonWhat3">
+      <div class="audio-play-icon">&#9654;</div>
+      <div class="audio-quote">"What you want?"</div>
+      <div class="audio-file">selection</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section id="features">
+<div class="container">
+  <p class="section-label">Details</p>
+  <h2 class="section-title">Thoughtfully configured</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">&#x1f50a;</div>
+      <h3>Volume control</h3>
+      <p>0.0 &ndash; 1.0 in config. Quiet enough for the office.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x1f500;</div>
+      <h3>No repeats</h3>
+      <p>Tracks last played per category. Never the same line twice in a row.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x1f39b;</div>
+      <h3>Category toggles</h3>
+      <p>Enable or disable greeting, acknowledge, complete, error, annoyed individually.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x1f4cb;</div>
+      <h3>Tab titles</h3>
+      <p>Terminal tab shows project name and status. Dot indicator when done.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x1f4e6;</div>
+      <h3>Pack system</h3>
+      <p>Swappable character packs. Peasant, Wisp, Acolyte &mdash; coming soon.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============ INSTALL CTA ============ -->
+<section id="install">
+<div class="container" style="text-align: center;">
+  <h2 class="section-title">Ready to work?</h2>
+  <p class="section-desc" style="margin: 0 auto 32px;">One command. Takes 10 seconds. Works with any Claude Code setup on macOS.</p>
+  <div class="install-block" onclick="copyInstall(this)" title="Click to copy">
+    <code>curl -fsSL https://raw.githubusercontent.com/tonysheng/claude-peon/main/install.sh | bash</code>
+    <button class="copy-btn" aria-label="Copy to clipboard">&#x2398;</button>
+  </div>
+</div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+<div class="container">
+  <p>MIT License &middot; <a href="https://github.com/tonysheng/claude-peon">GitHub</a></p>
+  <p>Sound files are property of Blizzard Entertainment. Downloaded separately at install time.</p>
+  <p>Friz Quadrata rendered by <a href="https://wc3ui.banteg.xyz/">wc3ui</a>.</p>
+</div>
+</footer>
+
+<script>
+// --- Copy install command ---
+function copyInstall(block) {
+  const cmd = block.querySelector('code').textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = block.querySelector('.copy-btn');
+    btn.classList.add('copied');
+    btn.innerHTML = '&#x2713;';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '&#x2398;';
+    }, 2000);
+  });
+}
+
+// --- Audio playback (one at a time) ---
+let currentAudio = null;
+let currentCard = null;
+
+document.querySelectorAll('.audio-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const soundName = card.dataset.sound;
+
+    // If same card clicked while playing, stop it
+    if (currentCard === card && currentAudio && !currentAudio.paused) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      card.classList.remove('playing');
+      card.querySelector('.audio-play-icon').innerHTML = '&#9654;';
+      currentAudio = null;
+      currentCard = null;
+      return;
+    }
+
+    // Stop any currently playing audio
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
+    if (currentCard) {
+      currentCard.classList.remove('playing');
+      currentCard.querySelector('.audio-play-icon').innerHTML = '&#9654;';
+    }
+
+    // Play new
+    const audio = new Audio('audio/' + soundName + '.ogg');
+    audio.play();
+    card.classList.add('playing');
+    card.querySelector('.audio-play-icon').innerHTML = '&#9632;';
+    currentAudio = audio;
+    currentCard = card;
+
+    audio.addEventListener('ended', () => {
+      card.classList.remove('playing');
+      card.querySelector('.audio-play-icon').innerHTML = '&#9654;';
+      currentAudio = null;
+      currentCard = null;
+    });
+  });
+});
+
+// --- Terminal sound toggle ---
+const termSoundToggle = document.getElementById('termSoundToggle');
+let termSoundEnabled = false;
+
+termSoundToggle.addEventListener('click', () => {
+  termSoundEnabled = !termSoundEnabled;
+  termSoundToggle.classList.toggle('active', termSoundEnabled);
+  if (termSoundEnabled) animateTerminal();
+});
+
+// --- Terminal animation ---
+let termTimeouts = [];
+let termAudio = null;
+let termAnimating = false;
+
+function animateTerminal() {
+  // Clear any pending animation
+  termTimeouts.forEach(t => clearTimeout(t));
+  termTimeouts = [];
+  if (termAudio) { termAudio.pause(); termAudio = null; }
+  termAnimating = true;
+
+  const lines = document.querySelectorAll('#terminalDemo .term-line');
+  lines.forEach(line => line.classList.remove('visible'));
+
+  lines.forEach(line => {
+    const delay = parseInt(line.dataset.delay) || 0;
+    const t = setTimeout(() => {
+      line.classList.add('visible');
+      if (termSoundEnabled && line.dataset.sound) {
+        if (termAudio) { termAudio.pause(); }
+        termAudio = new Audio('audio/' + line.dataset.sound + '.ogg');
+        termAudio.volume = 0.7;
+        termAudio.play().catch(() => {});
+      }
+    }, delay);
+    termTimeouts.push(t);
+  });
+
+  // Mark animation done after last line
+  const maxDelay = Math.max(...[...lines].map(l => parseInt(l.dataset.delay) || 0));
+  termTimeouts.push(setTimeout(() => { termAnimating = false; }, maxDelay + 500));
+}
+
+// Only animate once on first scroll into view, then replay on click
+const termObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !termAnimating) {
+      animateTerminal();
+      termObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+
+termObserver.observe(document.getElementById('terminalDemo'));
+</script>
+</body>
+</html>

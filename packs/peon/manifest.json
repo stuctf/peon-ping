@@ -1,0 +1,63 @@
+{
+  "name": "peon",
+  "display_name": "Orc Peon",
+  "source_url": "https://sounds.spriters-resource.com/media/assets/422/425494.zip",
+  "source_subfolder": "Orc/Peon",
+  "categories": {
+    "greeting": {
+      "sounds": [
+        { "file": "PeonReady1.wav", "line": "Ready to work?" },
+        { "file": "PeonWhat1.wav", "line": "Something need doing?" },
+        { "file": "PeonWhat3.wav", "line": "What do you want?" }
+      ]
+    },
+    "acknowledge": {
+      "sounds": [
+        { "file": "PeonYes1.wav", "line": "Work, work." },
+        { "file": "PeonYes2.wav", "line": "Zug zug." },
+        { "file": "PeonYes3.wav", "line": "Dabu." },
+        { "file": "PeonYes4.wav", "line": "Okie dokie." },
+        { "file": "PeonYesAttack1.wav", "line": "OK." },
+        { "file": "PeonYesAttack2.wav", "line": "I can do that." },
+        { "file": "PeonYesAttack3.wav", "line": "Be happy to." }
+      ]
+    },
+    "complete": {
+      "sounds": [
+        { "file": "PeonReady1.wav", "line": "Ready to work?" },
+        { "file": "PeonWhat1.wav", "line": "Something need doing?" },
+        { "file": "PeonYes1.wav", "line": "Work, work." },
+        { "file": "PeonYes2.wav", "line": "Zug zug." },
+        { "file": "PeonYes3.wav", "line": "Dabu." },
+        { "file": "PeonYesAttack1.wav", "line": "OK." },
+        { "file": "PeonYesAttack3.wav", "line": "Be happy to." }
+      ]
+    },
+    "error": {
+      "sounds": [
+        { "file": "PeonAngry4.wav", "line": "My tummy feels funny." },
+        { "file": "PeonDeath.wav", "line": "Ugh." }
+      ]
+    },
+    "permission": {
+      "sounds": [
+        { "file": "PeonWhat1.wav", "line": "Something need doing?" },
+        { "file": "PeonWhat2.wav", "line": "Hmm?" },
+        { "file": "PeonWhat3.wav", "line": "What do you want?" },
+        { "file": "PeonWhat4.wav", "line": "What?" }
+      ]
+    },
+    "resource_limit": {
+      "sounds": [
+        { "file": "PeonWarcry1.wav", "line": "We need more gold!" }
+      ]
+    },
+    "annoyed": {
+      "sounds": [
+        { "file": "PeonAngry1.wav", "line": "Me not that kind of orc!" },
+        { "file": "PeonAngry2.wav", "line": "Leave me alone." },
+        { "file": "PeonAngry3.wav", "line": "No time for play." }
+      ]
+    }
+  }
+}
