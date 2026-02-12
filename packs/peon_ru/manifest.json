@@ -27,7 +27,6 @@
         { "file": "PeonReady1.wav", "line": "Готов вкалывать!" },
         { "file": "PeonYes1.wav", "line": "Могу сделать." },
         { "file": "PeonYes2.wav", "line": "С радостью." },
-        { "file": "PeonYes3.wav", "line": "Работа, работа." },
         { "file": "PeonYesAttack1.wav", "line": "Ага ." },
         { "file": "PeonYesAttack3.wav", "line": "Попробуем." }
       ]

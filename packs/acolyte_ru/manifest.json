@@ -33,8 +33,7 @@
     },
     "error": {
       "sounds": [
-        { "file": "AcolyteDeath1.wav", "line": "Угх." },
-        { "file": "AcolytePissed4.wav", "line": "Чернее чёрного..." }
+        { "file": "AcolyteDeath1.wav", "line": "Угх." }
       ]
     },
     "permission": {
