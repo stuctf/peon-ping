@@ -6,34 +6,34 @@
       "sounds": [
         { "file": "PeonReady1.wav", "line": "Готов вкалывать!" },
         { "file": "PeonWhat1.wav", "line": "Да?" },
-        { "file": "PeonWhat3.wav", "line": "Чё надо, хозяин?" }
+        { "file": "PeonWhat2.wav", "line": "Да?" },
+        { "file": "PeonWhat3.wav", "line": "Чего хочешь?" },
+        { "file": "PeonWhat4.wav", "line": "Чё надо, хозяин?" }
       ]
     },
     "acknowledge": {
       "sounds": [
-        { "file": "PeonYes1.wav", "line": "Могу сделать." },
-        { "file": "PeonYes2.wav", "line": "С радостью." },
-        { "file": "PeonYes3.wav", "line": "Работа, работа." },
-        { "file": "PeonYes4.wav", "line": "Оки-доки." },
-        { "file": "PeonYesAttack1.wav", "line": "Ладно." },
-        { "file": "PeonYesAttack2.wav", "line": "Могу сделать." },
-        { "file": "PeonYesAttack3.wav", "line": "С радостью." }
+        { "file": "PeonYes1.wav", "line": "Сделаю." },
+        { "file": "PeonYes2.wav", "line": "С удовольствием." },
+        { "file": "PeonYes4.wav", "line": "Хо-ро-шо." },
+        { "file": "PeonYesAttack1.wav", "line": "Ага." },
+        { "file": "PeonYesAttack3.wav", "line": "С радостью." },
+        { "file": "PeonWarcry1.wav", "line": "Почему бы нет?" }
+
       ]
     },
     "complete": {
       "sounds": [
         { "file": "PeonReady1.wav", "line": "Готов вкалывать!" },
-        { "file": "PeonWhat4.wav", "line": "Есть чё делать?" },
         { "file": "PeonYes1.wav", "line": "Могу сделать." },
         { "file": "PeonYes2.wav", "line": "С радостью." },
         { "file": "PeonYes3.wav", "line": "Работа, работа." },
-        { "file": "PeonYesAttack1.wav", "line": "Ладно." },
-        { "file": "PeonYesAttack3.wav", "line": "С радостью." }
+        { "file": "PeonYesAttack1.wav", "line": "Ага ." },
+        { "file": "PeonYesAttack3.wav", "line": "Попробуем." }
       ]
     },
     "error": {
       "sounds": [
-        { "file": "PeonPissed4.wav", "line": "Я не такой орк!" },
         { "file": "PeonDeath.wav", "line": "Угх." }
       ]
     },
@@ -47,14 +47,14 @@
     },
     "resource_limit": {
       "sounds": [
-        { "file": "PeonWarcry1.wav", "line": "А чё нет?" }
+        { "file": "PeonPissed4.wav", "line": "Ты меня с кем-то путаешь." }
       ]
     },
     "annoyed": {
       "sounds": [
         { "file": "PeonPissed1.wav", "line": "Чегооо?" },
-        { "file": "PeonPissed2.wav", "line": "Я занят, отстань!" },
-        { "file": "PeonPissed3.wav", "line": "Не до игр." }
+        { "file": "PeonPissed2.wav", "line": "Не мешай, я занят!" },
+        { "file": "PeonPissed3.wav", "line": "Нет времени." }
       ]
     }
   }
