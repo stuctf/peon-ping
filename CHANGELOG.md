@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.7.0 (2026-02-12)
+
+### Added
+- **SSH remote audio support**: Auto-detects SSH sessions and routes audio through a relay server running on your local machine (`peon relay`)
+- **Relay daemon mode**: `peon relay --daemon`, `--stop`, `--status` for persistent background relay
+- **Devcontainer / Codespaces support**: Auto-detects container environments and routes audio to `host.docker.internal`
+- **Mobile push notifications**: `peon mobile ntfy|pushover|telegram` — get phone notifications via ntfy.sh, Pushover, or Telegram
+- **Enhanced `peon status`**: Shows active pack, installed pack count, and detected IDE ([#91](https://github.com/PeonPing/peon-ping/pull/91))
+- **Relay test suite**: 20 tests covering health, playback, path traversal protection, notifications, and daemon mode
+- **Automated Homebrew tap updates**: Release workflow now auto-updates `PeonPing/homebrew-tap`
+
+### Fixed
+- Prevent duplicate hooks when both global and local installs exist
+- Correct Ghostty process name casing in focus detection ([#92](https://github.com/PeonPing/peon-ping/pull/92))
+- Suppress replay sounds during session continue ([#19](https://github.com/PeonPing/peon-ping/issues/19))
+- Harden installer reliability ([#93](https://github.com/PeonPing/peon-ping/pull/93))
+
 ## v1.6.0 (2026-02-12)
 
 ### Breaking

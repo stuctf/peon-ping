@@ -40,6 +40,8 @@ bash install.sh --packs=peon,glados,peasant
 
 There is no build step, linter, or formatter configured for the shell codebase.
 
+See [RELEASING.md](RELEASING.md) for the full release process (version bumps, tagging, Homebrew tap updates).
+
 ## Architecture
 
 ### Core Files
