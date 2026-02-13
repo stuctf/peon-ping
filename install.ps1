@@ -13,59 +13,6 @@ $ErrorActionPreference = "Stop"
 Write-Host "=== peon-ping Windows installer ===" -ForegroundColor Cyan
 Write-Host ""
 
-# Enable debug mode with environment variable
-$DebugMode = $env:PEON_DEBUG -eq "1"
-if ($DebugMode) {
-    Write-Host "Debug mode enabled" -ForegroundColor Magenta
-    Write-Host ""
-}
-
-# Fix PowerShell comma-splitting: PowerShell/shells treat commas as array separators,
-# so "--packs=a,b,c" or unquoted pack lists become multiple args. Reconstruct with commas.
-if ($RemainingArgs -and $RemainingArgs.Count -gt 0) {
-    Write-Host "Note: Detected split arguments. Next time use quotes:" -ForegroundColor Yellow
-    Write-Host "      .\install.ps1 -Packs `"pack1,pack2,pack3`"" -ForegroundColor Yellow
-    Write-Host ""
-
-    if ($DebugMode) {
-        Write-Host "Debug: Reconstructing comma-separated list from args" -ForegroundColor Magenta
-        Write-Host "  Packs param: '$Packs'" -ForegroundColor DarkGray
-        Write-Host "  Remaining args: $($RemainingArgs -join ', ')" -ForegroundColor DarkGray
-    }
-
-    # Build array of non-empty pack args
-    $allPackArgs = @()
-    if ($Packs) {
-        # Strip prefix from $Packs if present
-        $Packs = $Packs -replace '^-*[Pp]acks=', ''
-        $allPackArgs += $Packs
-    }
-
-    # Add remaining args, stripping prefix from first arg if present
-    for ($i = 0; $i -lt $RemainingArgs.Count; $i++) {
-        $arg = $RemainingArgs[$i]
-        if ($i -eq 0) {
-            $arg = $arg -replace '^-*[Pp]acks=', ''
-        }
-        if ($arg) {
-            $allPackArgs += $arg
-        }
-    }
-
-    # Rejoin everything with commas
-    $Packs = $allPackArgs -join ','
-
-    if ($DebugMode) {
-        Write-Host "  Reconstructed: '$Packs'" -ForegroundColor DarkGray
-    }
-}
-
-# Validate and fix common parameter mistakes
-if ($Packs -and $Packs -match '^--') {
-    Write-Host "Note: PowerShell uses -Parameter syntax, not --parameter=value" -ForegroundColor Yellow
-    Write-Host "      Auto-correcting your command..." -ForegroundColor Yellow
-    Write-Host ""
-}
 
 # --- Paths ---
 $ClaudeDir = Join-Path $env:USERPROFILE ".claude"
@@ -102,57 +49,10 @@ try {
 # --- Decide which packs to download ---
 $packsToInstall = @()
 if ($Packs) {
-    # Strip common parameter prefix mistakes (--packs=, -Packs=, --Packs=)
-    # (may have already been stripped during arg reconstruction)
-    $originalPacks = $Packs
-    $Packs = $Packs -replace '^-*[Pp]acks=', ''
-
-    if ($DebugMode -and $originalPacks -ne $Packs) {
-        Write-Host "  Debug: Stripped parameter prefix" -ForegroundColor Magenta
-        Write-Host "    Before: $originalPacks" -ForegroundColor DarkGray
-        Write-Host "    After:  $Packs" -ForegroundColor DarkGray
-    }
-
-    # Additional cleanup: remove any leading/trailing commas or spaces
-    $Packs = $Packs.Trim(',', ' ')
-
     # Custom pack list (comma-separated)
     $customPackNames = $Packs -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-
-    if ($DebugMode) {
-        Write-Host "  Debug: Requested $($customPackNames.Count) packs:" -ForegroundColor Magenta
-        $customPackNames | ForEach-Object { Write-Host "    - $_" -ForegroundColor DarkGray }
-    }
-
     $packsToInstall = $registry.packs | Where-Object { $_.name -in $customPackNames }
-
-    # Warn about packs not found in registry
-    $foundNames = $packsToInstall | ForEach-Object { $_.name }
-    $notFound = $customPackNames | Where-Object { $_ -notin $foundNames }
-
-    if ($DebugMode) {
-        Write-Host "  Debug: Found $($foundNames.Count) packs in registry:" -ForegroundColor Magenta
-        $foundNames | ForEach-Object { Write-Host "    - $_" -ForegroundColor DarkGray }
-    }
-
-    if ($notFound) {
-        Write-Host "  Warning: Packs not found in registry: $($notFound -join ', ')" -ForegroundColor Yellow
-        if ($DebugMode) {
-            Write-Host "    Available packs in registry:" -ForegroundColor DarkGray
-            $registry.packs | Select-Object -First 10 -ExpandProperty name | ForEach-Object { Write-Host "      - $_" -ForegroundColor DarkGray }
-            if ($registry.packs.Count -gt 10) {
-                Write-Host "      ... and $($registry.packs.Count - 10) more" -ForegroundColor DarkGray
-            }
-        }
-    }
-
-    if ($packsToInstall.Count -eq 0) {
-        Write-Host "  ERROR: No valid packs to install!" -ForegroundColor Red
-        Write-Host "    Check your pack names against: https://peonping.github.io/registry/" -ForegroundColor Yellow
-        exit 1
-    }
-
-    Write-Host "  Installing $($packsToInstall.Count) packs: $($foundNames -join ', ')" -ForegroundColor Cyan
+    Write-Host "  Installing custom packs: $($customPackNames -join ', ')" -ForegroundColor Cyan
 } elseif ($All) {
     $packsToInstall = $registry.packs
     Write-Host "  Installing ALL $($packsToInstall.Count) packs..." -ForegroundColor Cyan
@@ -179,38 +79,16 @@ foreach ($packInfo in $packsToInstall) {
     $sourcePath = $packInfo.source_path
     $packBase = "https://raw.githubusercontent.com/$sourceRepo/$sourceRef/$sourcePath"
 
-    if ($DebugMode) {
-        Write-Host "  [$packName] Debug:" -ForegroundColor Magenta
-        Write-Host "    Repository: $sourceRepo" -ForegroundColor DarkGray
-        Write-Host "    Reference:  $sourceRef" -ForegroundColor DarkGray
-        Write-Host "    Path:       $sourcePath" -ForegroundColor DarkGray
-        Write-Host "    Base URL:   $packBase" -ForegroundColor DarkGray
-    }
-
     $packDir = Join-Path $InstallDir "packs\$packName"
     $soundsDir = Join-Path $packDir "sounds"
     New-Item -ItemType Directory -Path $soundsDir -Force | Out-Null
 
     # Download manifest
     $manifestPath = Join-Path $packDir "openpeon.json"
-    $manifestUrl = "$packBase/openpeon.json"
-
-    if ($DebugMode) {
-        Write-Host "    Fetching manifest: $manifestUrl" -ForegroundColor DarkGray
-    }
-
     try {
-        $response = Invoke-WebRequest -Uri $manifestUrl -OutFile $manifestPath -UseBasicParsing -ErrorAction Stop -PassThru
-        if ($DebugMode) {
-            Write-Host "    Manifest OK (HTTP $($response.StatusCode))" -ForegroundColor DarkGray
-        }
+        Invoke-WebRequest -Uri "$packBase/openpeon.json" -OutFile $manifestPath -UseBasicParsing -ErrorAction Stop
     } catch {
-        Write-Host "  [$packName] Failed to download manifest" -ForegroundColor Yellow
-        Write-Host "    URL: $manifestUrl" -ForegroundColor Red
-        Write-Host "    Error: $($_.Exception.Message)" -ForegroundColor Red
-        if ($_.Exception.Response) {
-            Write-Host "    HTTP Status: $($_.Exception.Response.StatusCode.value__)" -ForegroundColor Red
-        }
+        Write-Host "  [$packName] Failed to download manifest - skipping" -ForegroundColor Yellow
         $failedPacks++
         continue
     }
@@ -229,13 +107,8 @@ foreach ($packInfo in $packsToInstall) {
             }
         }
 
-        if ($DebugMode) {
-            Write-Host "    Found $($soundFiles.Count) sound files in manifest" -ForegroundColor DarkGray
-        }
-
         $downloaded = 0
         $skipped = 0
-        $failed = @()
         foreach ($sfile in $soundFiles) {
             $soundPath = Join-Path $soundsDir $sfile
             if (Test-Path $soundPath) {
@@ -243,35 +116,18 @@ foreach ($packInfo in $packsToInstall) {
                 $downloaded++
                 continue
             }
-            $soundUrl = "$packBase/sounds/$sfile"
             try {
-                if ($DebugMode) {
-                    Write-Host "    Downloading: $sfile" -ForegroundColor DarkGray
-                }
-                Invoke-WebRequest -Uri $soundUrl -OutFile $soundPath -UseBasicParsing -ErrorAction Stop | Out-Null
+                Invoke-WebRequest -Uri "$packBase/sounds/$sfile" -OutFile $soundPath -UseBasicParsing -ErrorAction Stop
                 $downloaded++
             } catch {
-                $failed += $sfile
-                if ($DebugMode) {
-                    Write-Host "    Failed: $sfile - $($_.Exception.Message)" -ForegroundColor Red
-                }
+                # non-critical, skip this sound
             }
         }
         $totalSounds += $downloaded
         $status = if ($skipped -eq $downloaded -and $downloaded -gt 0) { "(cached)" } else { "" }
-
-        if ($failed.Count -gt 0) {
-            Write-Host "  [$packName] $downloaded/$($soundFiles.Count) sounds $status ($($failed.Count) failed)" -ForegroundColor Yellow
-            if (-not $DebugMode) {
-                Write-Host "    Failed files: $($failed -join ', ')" -ForegroundColor Red
-                Write-Host "    Run with `$env:PEON_DEBUG=`"1`" for detailed error info" -ForegroundColor DarkGray
-            }
-        } else {
-            Write-Host "  [$packName] $downloaded/$($soundFiles.Count) sounds $status" -ForegroundColor DarkGray
-        }
+        Write-Host "  [$packName] $downloaded/$($soundFiles.Count) sounds $status" -ForegroundColor DarkGray
     } catch {
         Write-Host "  [$packName] Failed to parse manifest" -ForegroundColor Yellow
-        Write-Host "    Error: $($_.Exception.Message)" -ForegroundColor Red
         $failedPacks++
     }
 }
@@ -770,9 +626,7 @@ if ($Updating) {
     Write-Host ""
     Write-Host "  Start Claude Code and you'll hear: `"Ready to work?`"" -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "  To install specific packs:" -ForegroundColor DarkGray
-    Write-Host "    .\install.ps1 -Packs `"peon,glados,peasant`"" -ForegroundColor DarkGray
-    Write-Host "    (Use quotes to prevent shell from splitting on commas)" -ForegroundColor DarkGray
+    Write-Host "  To install specific packs: .\install.ps1 -Packs peon,glados,peasant" -ForegroundColor DarkGray
     Write-Host "  To install ALL packs: .\install.ps1 -All" -ForegroundColor DarkGray
     Write-Host "  To uninstall: powershell -ExecutionPolicy Bypass -File `"$InstallDir\uninstall.ps1`"" -ForegroundColor DarkGray
 }
