@@ -1503,7 +1503,7 @@ if [ -n "$TAB_COLOR_RGB" ] && [[ "${TERM_PROGRAM:-}" == "iTerm.app" ]]; then
   printf "\033]6;1;bg;blue;brightness;%d\a" "$_B" > /dev/tty 2>/dev/null || true
 fi
 
-(
+_run_sound_and_notify() {
   # --- Play sound ---
   if [ -n "$SOUND_FILE" ] && [ -f "$SOUND_FILE" ]; then
     play_sound "$SOUND_FILE" "$VOLUME"
@@ -1520,6 +1520,13 @@ fi
   if [ -n "$NOTIFY" ] && [ "$PAUSED" != "true" ] && [ "${MOBILE_NOTIF:-false}" = "true" ]; then
     send_mobile_notification "$MSG" "$TITLE" "${NOTIFY_COLOR:-red}"
   fi
-) & disown
+}
+
+# In test mode run synchronously; in production background to avoid blocking the IDE
+if [ "${PEON_TEST:-0}" = "1" ]; then
+  _run_sound_and_notify
+else
+  _run_sound_and_notify & disown
+fi
 
 exit 0
