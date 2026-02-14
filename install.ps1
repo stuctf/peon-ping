@@ -717,8 +717,9 @@ foreach ($evt in $events) {
 $settings | ConvertTo-Json -Depth 10 | Set-Content $SettingsFile -Encoding UTF8
 Write-Host "  Hooks registered for: $($events -join ', ')" -ForegroundColor Green
 
-# --- Register beforeSubmitPrompt hook for /peon-ping-use command ---
-Write-Host "  Registering beforeSubmitPrompt hook for /peon-ping-use..."
+# --- Register UserPromptSubmit hook for /peon-ping-use command ---
+# (Claude Code uses UserPromptSubmit; Cursor uses beforeSubmitPrompt — see below)
+Write-Host "  Registering UserPromptSubmit hook for /peon-ping-use..."
 
 $beforeSubmitHookPath = Join-Path $InstallDir "scripts\hook-handle-use.ps1"
 $beforeSubmitCmd = "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$beforeSubmitHookPath`""
@@ -737,10 +738,11 @@ $beforeSubmitEntry = [PSCustomObject]@{
     hooks = @($beforeSubmitHook)
 }
 
+# Register under UserPromptSubmit (valid Claude Code event)
 $eventHooks = @()
-if ($settings.hooks | Get-Member -Name "beforeSubmitPrompt" -MemberType NoteProperty) {
-    # Remove existing handle-use entries, keep others
-    $eventHooks = @($settings.hooks.beforeSubmitPrompt | Where-Object {
+if ($settings.hooks | Get-Member -Name "UserPromptSubmit" -MemberType NoteProperty) {
+    # Remove existing handle-use entries, keep peon.ps1 entries
+    $eventHooks = @($settings.hooks.UserPromptSubmit | Where-Object {
         $dominated = $false
         foreach ($h in $_.hooks) {
             if ($h.command -and $h.command -match "hook-handle-use") {
@@ -752,14 +754,19 @@ if ($settings.hooks | Get-Member -Name "beforeSubmitPrompt" -MemberType NoteProp
 }
 $eventHooks += $beforeSubmitEntry
 
-if ($settings.hooks | Get-Member -Name "beforeSubmitPrompt" -MemberType NoteProperty) {
-    $settings.hooks.beforeSubmitPrompt = $eventHooks
+if ($settings.hooks | Get-Member -Name "UserPromptSubmit" -MemberType NoteProperty) {
+    $settings.hooks.UserPromptSubmit = $eventHooks
 } else {
-    $settings.hooks | Add-Member -NotePropertyName "beforeSubmitPrompt" -NotePropertyValue $eventHooks
+    $settings.hooks | Add-Member -NotePropertyName "UserPromptSubmit" -NotePropertyValue $eventHooks
+}
+
+# Clean up stale beforeSubmitPrompt key if present (was incorrectly registered before)
+if ($settings.hooks | Get-Member -Name "beforeSubmitPrompt" -MemberType NoteProperty) {
+    $settings.hooks.PSObject.Properties.Remove("beforeSubmitPrompt")
 }
 
 $settings | ConvertTo-Json -Depth 10 | Set-Content $SettingsFile -Encoding UTF8
-Write-Host "  beforeSubmitPrompt hook registered" -ForegroundColor Green
+Write-Host "  UserPromptSubmit hook registered for /peon-ping-use" -ForegroundColor Green
 
 # --- Register Cursor hooks if ~/.cursor exists ---
 $CursorDir = Join-Path $env:USERPROFILE ".cursor"

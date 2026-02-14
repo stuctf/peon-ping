@@ -17,5 +17,6 @@
   "silent_window_seconds": 0,
   "pack_rotation": [],
   "pack_rotation_mode": "random",
-  "session_ttl_days": 7
+  "session_ttl_days": 7,
+  "linux_audio_player": ""
 }

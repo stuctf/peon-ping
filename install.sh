@@ -764,7 +764,8 @@ with open(settings_path, 'w') as f:
 print('Hooks registered for: ' + ', '.join(events))
 "
 
-# Register beforeSubmitPrompt hook for /peon-ping-use command
+# Register UserPromptSubmit hook for /peon-ping-use command
+# (Claude Code uses UserPromptSubmit; Cursor uses beforeSubmitPrompt — see below)
 BEFORE_SUBMIT_HOOK="$GLOBAL_BASE/hooks/peon-ping/scripts/hook-handle-use.sh"
 
 python3 -c "
@@ -782,7 +783,7 @@ else:
 
 hooks = settings.setdefault('hooks', {})
 
-# Create beforeSubmitPrompt hook entry (Claude Code format)
+# Create UserPromptSubmit hook entry for /peon-ping-use handler
 before_submit_hook = {
     'type': 'command',
     'command': hook_cmd,
@@ -794,9 +795,9 @@ before_submit_entry = {
     'hooks': [before_submit_hook]
 }
 
-# Register beforeSubmitPrompt hook
-event_hooks = hooks.get('beforeSubmitPrompt', [])
-# Remove any existing handle-use entries
+# Register under UserPromptSubmit (valid Claude Code event)
+event_hooks = hooks.get('UserPromptSubmit', [])
+# Remove any existing handle-use entries (keep peon.sh entries)
 event_hooks = [
     h for h in event_hooks
     if not any(
@@ -805,7 +806,11 @@ event_hooks = [
     )
 ]
 event_hooks.append(before_submit_entry)
-hooks['beforeSubmitPrompt'] = event_hooks
+hooks['UserPromptSubmit'] = event_hooks
+
+# Clean up stale beforeSubmitPrompt key if present (was incorrectly registered before)
+if 'beforeSubmitPrompt' in hooks:
+    del hooks['beforeSubmitPrompt']
 
 settings['hooks'] = hooks
 
@@ -813,7 +818,7 @@ with open(settings_path, 'w') as f:
     json.dump(settings, f, indent=2)
     f.write('\n')
 
-print('beforeSubmitPrompt hook registered for /peon-ping-use command')
+print('UserPromptSubmit hook registered for /peon-ping-use command')
 "
 
 # Register beforeSubmitPrompt hook for Cursor IDE if ~/.cursor exists

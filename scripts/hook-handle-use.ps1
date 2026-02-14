@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-# beforeSubmitPrompt hook for /peon-ping-use command
+# UserPromptSubmit hook for /peon-ping-use command
 # Intercepts `/peon-ping-use <pack>` before it reaches the LLM
 # CLI fallback: run with pack name as first arg, e.g. hook-handle-use.ps1 peasant
 

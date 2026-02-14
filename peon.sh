@@ -47,6 +47,7 @@ STATE="$PEON_DIR/.state.json"
 
 # --- Linux audio backend detection ---
 detect_linux_player() {
+  local override="${1:-}"
   # Helper to check if a player is available (respects test-mode disable markers)
   player_available() {
     local cmd="$1"
@@ -55,6 +56,12 @@ detect_linux_player() {
     [ "${PEON_TEST:-0}" = "1" ] && [ -f "${CLAUDE_PEON_DIR}/.disabled_${cmd}" ] && return 1
     return 0
   }
+
+  # If user configured a preferred player, try it first
+  if [ -n "$override" ] && player_available "$override"; then
+    echo "$override"
+    return 0
+  fi
 
   if player_available pw-play; then
     echo "pw-play"
@@ -208,7 +215,7 @@ play_sound() {
       ;;
     linux)
       local player
-      player=$(detect_linux_player) || player=""
+      player=$(detect_linux_player "${LINUX_AUDIO_PLAYER:-}") || player=""
       if [ -n "$player" ]; then
         play_linux_sound "$file" "$vol" "$player"
         save_sound_pid $!
@@ -1323,6 +1330,7 @@ if str(cfg.get('enabled', True)).lower() == 'false':
 
 volume = cfg.get('volume', 0.5)
 desktop_notif = cfg.get('desktop_notifications', True)
+linux_audio_player = cfg.get('linux_audio_player', '')
 tab_color_cfg = cfg.get('tab_color', {})
 tab_color_enabled = str(tab_color_cfg.get('enabled', True)).lower() != 'false'
 active_pack = cfg.get('active_pack', 'peon')
@@ -1655,6 +1663,7 @@ print('NOTIFY=' + q(notify))
 print('NOTIFY_COLOR=' + q(notify_color))
 print('MSG=' + q(msg))
 print('DESKTOP_NOTIF=' + ('true' if desktop_notif else 'false'))
+print('LINUX_AUDIO_PLAYER=' + q(linux_audio_player))
 mn = cfg.get('mobile_notify', {})
 mobile_on = bool(mn and mn.get('service') and mn.get('enabled', True))
 print('MOBILE_NOTIF=' + ('true' if mobile_on else 'false'))

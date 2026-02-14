@@ -1,5 +1,5 @@
 #!/bin/bash
-# beforeSubmitPrompt hook for /peon-ping-use command
+# UserPromptSubmit hook for /peon-ping-use command
 # Intercepts `/peon-ping-use <pack>` before it reaches the LLM
 set -euo pipefail
 
