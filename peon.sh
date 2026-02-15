@@ -284,70 +284,103 @@ APPLESCRIPT
       esac
       ;;
     wsl)
-      # Map color name to RGB
-      local rgb_r=180 rgb_g=0 rgb_b=0
-      case "$color" in
-        blue)   rgb_r=30  rgb_g=80  rgb_b=180 ;;
-        yellow) rgb_r=200 rgb_g=160 rgb_b=0   ;;
-        red)    rgb_r=180 rgb_g=0   rgb_b=0   ;;
-      esac
-      local icon_win_path=""
-      if [ -f "$icon_path" ]; then
-        icon_win_path=$(wslpath -w "$icon_path" 2>/dev/null || true)
-      fi
-      (
-        # Claim a popup slot for vertical stacking
-        slot_dir="/tmp/peon-ping-popups"
-        mkdir -p "$slot_dir"
-        slot=0
-        while ! mkdir "$slot_dir/slot-$slot" 2>/dev/null; do
-          slot=$((slot + 1))
-        done
-        y_offset=$((40 + slot * 90))
-        powershell.exe -NoProfile -NonInteractive -Command "
-          Add-Type -AssemblyName System.Windows.Forms
-          Add-Type -AssemblyName System.Drawing
-          foreach (\$screen in [System.Windows.Forms.Screen]::AllScreens) {
-            \$form = New-Object System.Windows.Forms.Form
-            \$form.FormBorderStyle = 'None'
-            \$form.BackColor = [System.Drawing.Color]::FromArgb($rgb_r, $rgb_g, $rgb_b)
-            \$form.Size = New-Object System.Drawing.Size(500, 80)
-            \$form.TopMost = \$true
-            \$form.ShowInTaskbar = \$false
-            \$form.StartPosition = 'Manual'
-            \$form.Location = New-Object System.Drawing.Point(
-              (\$screen.WorkingArea.X + (\$screen.WorkingArea.Width - 500) / 2),
-              (\$screen.WorkingArea.Y + $y_offset)
-            )
-            \$iconLeft = 10
-            \$iconSize = 60
-            if ('$icon_win_path' -ne '' -and (Test-Path '$icon_win_path')) {
-              \$pb = New-Object System.Windows.Forms.PictureBox
-              \$pb.Image = [System.Drawing.Image]::FromFile('$icon_win_path')
-              \$pb.SizeMode = 'Zoom'
-              \$pb.Size = New-Object System.Drawing.Size(\$iconSize, \$iconSize)
-              \$pb.Location = New-Object System.Drawing.Point(\$iconLeft, 10)
-              \$pb.BackColor = [System.Drawing.Color]::Transparent
-              \$form.Controls.Add(\$pb)
-              \$label = New-Object System.Windows.Forms.Label
-              \$label.Location = New-Object System.Drawing.Point((\$iconLeft + \$iconSize + 5), 0)
-              \$label.Size = New-Object System.Drawing.Size((500 - \$iconLeft - \$iconSize - 15), 80)
-            } else {
-              \$label = New-Object System.Windows.Forms.Label
-              \$label.Dock = 'Fill'
+      if [ "${WSL_TOAST:-true}" = "true" ]; then
+        # Windows toast notification (no focus stealing, appears in Action Center)
+        local tmpdir
+        tmpdir=$(powershell.exe -NoProfile -NonInteractive -Command '[System.IO.Path]::GetTempPath()' 2>/dev/null | tr -d '\r')
+        local tmpdir_wsl
+        tmpdir_wsl="$(wslpath -u "$tmpdir")"
+        # Copy icon to Windows temp if available
+        local icon_xml=""
+        if [ -f "$icon_path" ]; then
+          cp "$icon_path" "${tmpdir_wsl}peon-ping-icon.png" 2>/dev/null
+          icon_xml="<image placement=\"appLogoOverride\" hint-crop=\"circle\" src=\"${tmpdir}peon-ping-icon.png\" />"
+        fi
+        # Extract just the action part from msg (remove repeated project name)
+        local toast_body="$msg"
+        if [[ "$msg" == *" — "* ]]; then
+          toast_body="${msg##* — }"
+        fi
+        # Strip leading marker (● ) from title for cleaner toast
+        local toast_title="${title#● }"
+        # Write toast XML to temp file (avoids bash/powershell escaping issues)
+        cat > "${tmpdir_wsl}peon-toast.xml" <<TOASTEOF
+<toast duration="short"><visual><binding template="ToastGeneric"><text>${toast_body}</text><text>${toast_title}</text>${icon_xml}</binding></visual><audio silent="true" /></toast>
+TOASTEOF
+        setsid powershell.exe -NoProfile -NonInteractive -Command '
+          [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
+          [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom, ContentType = WindowsRuntime] | Out-Null
+          $APP_ID = "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe"
+          $xml = New-Object Windows.Data.Xml.Dom.XmlDocument
+          $xml.LoadXml((Get-Content ($env:TEMP + "\peon-toast.xml") -Raw -Encoding UTF8))
+          $toast = New-Object Windows.UI.Notifications.ToastNotification $xml
+          [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($APP_ID).Show($toast)
+        ' &>/dev/null &
+      else
+        # Legacy Windows Forms popup
+        local rgb_r=180 rgb_g=0 rgb_b=0
+        case "$color" in
+          blue)   rgb_r=30  rgb_g=80  rgb_b=180 ;;
+          yellow) rgb_r=200 rgb_g=160 rgb_b=0   ;;
+          red)    rgb_r=180 rgb_g=0   rgb_b=0   ;;
+        esac
+        local icon_win_path=""
+        if [ -f "$icon_path" ]; then
+          icon_win_path=$(wslpath -w "$icon_path" 2>/dev/null || true)
+        fi
+        (
+          slot_dir="/tmp/peon-ping-popups"
+          mkdir -p "$slot_dir"
+          slot=0
+          while ! mkdir "$slot_dir/slot-$slot" 2>/dev/null; do
+            slot=$((slot + 1))
+          done
+          y_offset=$((40 + slot * 90))
+          powershell.exe -NoProfile -NonInteractive -Command "
+            Add-Type -AssemblyName System.Windows.Forms
+            Add-Type -AssemblyName System.Drawing
+            foreach (\$screen in [System.Windows.Forms.Screen]::AllScreens) {
+              \$form = New-Object System.Windows.Forms.Form
+              \$form.FormBorderStyle = 'None'
+              \$form.BackColor = [System.Drawing.Color]::FromArgb($rgb_r, $rgb_g, $rgb_b)
+              \$form.Size = New-Object System.Drawing.Size(500, 80)
+              \$form.TopMost = \$true
+              \$form.ShowInTaskbar = \$false
+              \$form.StartPosition = 'Manual'
+              \$form.Location = New-Object System.Drawing.Point(
+                (\$screen.WorkingArea.X + (\$screen.WorkingArea.Width - 500) / 2),
+                (\$screen.WorkingArea.Y + $y_offset)
+              )
+              \$iconLeft = 10
+              \$iconSize = 60
+              if ('$icon_win_path' -ne '' -and (Test-Path '$icon_win_path')) {
+                \$pb = New-Object System.Windows.Forms.PictureBox
+                \$pb.Image = [System.Drawing.Image]::FromFile('$icon_win_path')
+                \$pb.SizeMode = 'Zoom'
+                \$pb.Size = New-Object System.Drawing.Size(\$iconSize, \$iconSize)
+                \$pb.Location = New-Object System.Drawing.Point(\$iconLeft, 10)
+                \$pb.BackColor = [System.Drawing.Color]::Transparent
+                \$form.Controls.Add(\$pb)
+                \$label = New-Object System.Windows.Forms.Label
+                \$label.Location = New-Object System.Drawing.Point((\$iconLeft + \$iconSize + 5), 0)
+                \$label.Size = New-Object System.Drawing.Size((500 - \$iconLeft - \$iconSize - 15), 80)
+              } else {
+                \$label = New-Object System.Windows.Forms.Label
+                \$label.Dock = 'Fill'
+              }
+              \$label.Text = '$msg'
+              \$label.ForeColor = [System.Drawing.Color]::White
+              \$label.Font = New-Object System.Drawing.Font('Segoe UI', 16, [System.Drawing.FontStyle]::Bold)
+              \$label.TextAlign = 'MiddleCenter'
+              \$form.Controls.Add(\$label)
+              \$form.Show()
             }
-            \$label.Text = '$msg'
-            \$label.ForeColor = [System.Drawing.Color]::White
-            \$label.Font = New-Object System.Drawing.Font('Segoe UI', 16, [System.Drawing.FontStyle]::Bold)
-            \$label.TextAlign = 'MiddleCenter'
-            \$form.Controls.Add(\$label)
-            \$form.Show()
-          }
-          Start-Sleep -Seconds 4
-          [System.Windows.Forms.Application]::Exit()
-        " &>/dev/null
-        rm -rf "$slot_dir/slot-$slot"
-      ) &
+            Start-Sleep -Seconds 4
+            [System.Windows.Forms.Application]::Exit()
+          " &>/dev/null
+          rm -rf "$slot_dir/slot-$slot"
+        ) &
+      fi
       ;;
     devcontainer|ssh)
       local relay_host_default="host.docker.internal"
@@ -1663,6 +1696,7 @@ print('NOTIFY=' + q(notify))
 print('NOTIFY_COLOR=' + q(notify_color))
 print('MSG=' + q(msg))
 print('DESKTOP_NOTIF=' + ('true' if desktop_notif else 'false'))
+print('WSL_TOAST=' + ('true' if cfg.get('wsl_toast_notifications', True) else 'false'))
 print('LINUX_AUDIO_PLAYER=' + q(linux_audio_player))
 mn = cfg.get('mobile_notify', {})
 mobile_on = bool(mn and mn.get('service') and mn.get('enabled', True))
