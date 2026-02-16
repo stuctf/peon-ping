@@ -686,6 +686,47 @@ else
   echo "Warning: skills/peon-ping-use not found in local clone, skipping use skill install"
 fi
 
+# --- Install log skill ---
+LOG_SKILL_DIR="$BASE_DIR/skills/peon-ping-log"
+mkdir -p "$LOG_SKILL_DIR"
+if [ -n "$SCRIPT_DIR" ] && [ -d "$SCRIPT_DIR/skills/peon-ping-log" ]; then
+  cp "$SCRIPT_DIR/skills/peon-ping-log/SKILL.md" "$LOG_SKILL_DIR/"
+elif [ -z "$SCRIPT_DIR" ]; then
+  curl -fsSL "$REPO_BASE/skills/peon-ping-log/SKILL.md" -o "$LOG_SKILL_DIR/SKILL.md"
+else
+  echo "Warning: skills/peon-ping-log not found in local clone, skipping log skill install"
+fi
+
+# --- Install trainer voice packs ---
+TRAINER_DIR="$INSTALL_DIR/trainer"
+mkdir -p "$TRAINER_DIR/sounds"
+if [ -n "$SCRIPT_DIR" ] && [ -d "$SCRIPT_DIR/trainer" ]; then
+  cp "$SCRIPT_DIR/trainer/manifest.json" "$TRAINER_DIR/"
+  for subdir in "$SCRIPT_DIR/trainer/sounds/"*/; do
+    [ -d "$subdir" ] || continue
+    dirname=$(basename "$subdir")
+    mkdir -p "$TRAINER_DIR/sounds/$dirname"
+    cp "$subdir"*.mp3 "$TRAINER_DIR/sounds/$dirname/" 2>/dev/null || true
+  done
+  echo "Trainer voice packs installed."
+elif [ -z "$SCRIPT_DIR" ]; then
+  curl -fsSL "$REPO_BASE/trainer/manifest.json" -o "$TRAINER_DIR/manifest.json"
+  # Parse manifest to download all trainer sounds
+  python3 -c "
+import json, sys
+m = json.load(open('$TRAINER_DIR/manifest.json'))
+for cat in m.values():
+    for s in cat:
+        print(s['file'])
+" | while read -r sfile; do
+    mkdir -p "$TRAINER_DIR/$(dirname "$sfile")"
+    curl -fsSL "$REPO_BASE/trainer/$sfile" -o "$TRAINER_DIR/$sfile" 2>/dev/null || true
+  done
+  echo "Trainer voice packs installed."
+else
+  echo "Warning: trainer/ not found in local clone, skipping trainer install"
+fi
+
 # --- Add shell alias (global install only) ---
 if [ "$LOCAL_MODE" = false ]; then
   ALIAS_LINE="alias peon=\"bash $INSTALL_DIR/peon.sh\""

@@ -506,7 +506,7 @@ interface NotifyOptions {
  * Detect whether terminal-notifier is available.
  * Cached at plugin init for performance.
  *
- * TODO: terminal-notifier (github.com/julienXX/terminal-notifier) is unmaintained
+ * NOTE: terminal-notifier (github.com/julienXX/terminal-notifier) is unmaintained
  * (last commit 2021) and uses the deprecated NSUserNotification API. Consider
  * migrating to jamf/Notifier (github.com/jamf/Notifier) which uses the modern
  * UserNotifications framework and has built-in --rebrand support for custom icons.
@@ -563,7 +563,7 @@ function sendNotification(
 
   if (platform === "darwin") {
     // Prefer terminal-notifier for rich notifications (custom icon, grouping)
-    // TODO: Replace with jamf/Notifier when available via Homebrew — see detectTerminalNotifier()
+    // NOTE: Replace with jamf/Notifier when available via Homebrew — see detectTerminalNotifier()
     if (terminalNotifierPath) {
       try {
         const args = [

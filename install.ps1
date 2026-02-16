@@ -880,7 +880,7 @@ $skillsSourceDir = Join-Path $ScriptDir "skills"
 $skillsTargetDir = Join-Path $ClaudeDir "skills"
 New-Item -ItemType Directory -Path $skillsTargetDir -Force | Out-Null
 
-$skillNames = @("peon-ping-toggle", "peon-ping-config", "peon-ping-use")
+$skillNames = @("peon-ping-toggle", "peon-ping-config", "peon-ping-use", "peon-ping-log")
 
 if (Test-Path $skillsSourceDir) {
     # Local install: copy from repo
@@ -912,6 +912,50 @@ if (Test-Path $skillsSourceDir) {
         }
     }
     Write-Host "  Skills installed" -ForegroundColor Green
+}
+
+# --- Install trainer voice packs ---
+Write-Host ""
+Write-Host "Installing trainer voice packs..."
+
+$trainerSourceDir = Join-Path $ScriptDir "trainer"
+$trainerTargetDir = Join-Path $InstallDir "trainer"
+New-Item -ItemType Directory -Path $trainerTargetDir -Force | Out-Null
+
+if (Test-Path $trainerSourceDir) {
+    # Local install: copy from repo
+    Copy-Item -Path (Join-Path $trainerSourceDir "manifest.json") -Destination $trainerTargetDir -Force
+    $soundsSource = Join-Path $trainerSourceDir "sounds"
+    if (Test-Path $soundsSource) {
+        Copy-Item -Path $soundsSource -Destination $trainerTargetDir -Recurse -Force
+    }
+    Write-Host "  Trainer voice packs installed" -ForegroundColor Green
+} else {
+    # One-liner install: download from GitHub
+    $manifestUrl = "$RepoBase/trainer/manifest.json"
+    $manifestFile = Join-Path $trainerTargetDir "manifest.json"
+    try {
+        Invoke-WebRequest -Uri $manifestUrl -OutFile $manifestFile -UseBasicParsing -ErrorAction Stop
+        # Parse manifest and download all sound files
+        $manifest = Get-Content $manifestFile | ConvertFrom-Json
+        foreach ($category in $manifest.PSObject.Properties) {
+            foreach ($sound in $category.Value) {
+                $soundFile = $sound.file
+                $soundDir = Join-Path $trainerTargetDir (Split-Path $soundFile -Parent)
+                New-Item -ItemType Directory -Path $soundDir -Force | Out-Null
+                $soundUrl = "$RepoBase/trainer/$soundFile"
+                $soundTarget = Join-Path $trainerTargetDir $soundFile
+                try {
+                    Invoke-WebRequest -Uri $soundUrl -OutFile $soundTarget -UseBasicParsing -ErrorAction Stop
+                } catch {
+                    Write-Host "  Warning: Could not download trainer/$soundFile" -ForegroundColor Yellow
+                }
+            }
+        }
+        Write-Host "  Trainer voice packs installed" -ForegroundColor Green
+    } catch {
+        Write-Host "  Warning: Could not download trainer manifest" -ForegroundColor Yellow
+    }
 }
 
 # --- Install uninstall script ---
