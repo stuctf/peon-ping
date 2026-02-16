@@ -984,6 +984,9 @@ export default function LandingPage() {
             <p className="contribute-ideas">
               <strong>Want to add your own?</strong> Any game, any character &mdash; create a GitHub repo with your sounds, register it, and it&apos;s available to everyone. <a href="https://openpeon.com/create">Create a pack &rarr;</a>
             </p>
+            <p className="contribute-ideas">
+              <strong>Don&apos;t see your favorite character?</strong> <a href="https://openpeon.com/requests">Request a pack</a> and upvote community suggestions.
+            </p>
           </div>
         </div>
       </section>
