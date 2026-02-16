@@ -1612,8 +1612,10 @@ annoyed_window = float(cfg.get('annoyed_window_seconds', 10))
 silent_window = float(cfg.get('silent_window_seconds', 0))
 cats = cfg.get('categories', {})
 cat_enabled = {}
+default_off = {'task.acknowledge'}
 for c in ['session.start','task.acknowledge','task.complete','task.error','input.required','resource.limit','user.spam']:
-    cat_enabled[c] = str(cats.get(c, True)).lower() == 'true'
+    default = False if c in default_off else True
+    cat_enabled[c] = str(cats.get(c, default)).lower() == 'true'
 
 # --- Parse event JSON from stdin ---
 event_data = json.load(sys.stdin)
@@ -1794,8 +1796,9 @@ elif event == 'UserPromptSubmit':
         state_dirty = True
         if len(ts) >= annoyed_threshold:
             category = 'user.spam'
-    if not category and cat_enabled.get('task.acknowledge', True):
+    if not category and cat_enabled.get('task.acknowledge', False):
         category = 'task.acknowledge'
+        status = 'working'
     if silent_window > 0:
         prompt_starts = state.get('prompt_start_times', {})
         prompt_starts[session_id] = time.time()
