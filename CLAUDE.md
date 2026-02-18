@@ -167,12 +167,6 @@ These are hard rules. When you make a change of type X, you MUST also do Y.
 → Update `README.md` CLI reference section
 → Add BATS test in `tests/peon.bats`
 
-### If you add a new sound pack to `og-packs`
-→ Bump the pack version in `openpeon.json` (1.0.0 → 1.1.0 for new categories)
-→ Ensure all required CESP categories are present: `session.start`, `task.complete`, `task.error`, `input.required`, `resource.limit`, `user.spam`
-→ Add or update the FRANCHISE_MAP entry in `../openpeon/site/scripts/generate-pack-data.ts`
-→ Add a registry entry in `../registry/index.json`
-
 ### If you update `README.md` (any feature doc change)
 → Apply the same change to `README_zh.md` (Chinese translation)
 → Update `docs/public/llms.txt` — peonping.com LLM context file
