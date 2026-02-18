@@ -57,12 +57,12 @@ curl -fsSL https://raw.githubusercontent.com/PeonPing/peon-ping/main/install.sh 
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/PeonPing/peon-ping/main/install.ps1" -UseBasicParsing | Invoke-Expression
 ```
 
-默认安装 10 个精选英文语音包。重新运行可更新，同时保留配置和状态。你也可以在 **[peonping.com 交互式选择语音包](https://peonping.com/#picker)** 获取自定义安装命令。
+默认安装 5 个精选语音包（魔兽、星际、传送门）。重新运行可更新，同时保留配置和状态。你也可以在 **[peonping.com 交互式选择语音包](https://peonping.com/#picker)** 获取自定义安装命令。
 
 实用安装参数：
 
 - `--all` — 安装所有可用语音包
-- `--packs=peon,glados,...` — 仅安装指定语音包
+- `--packs=peon,sc_kerrigan,...` — 仅安装指定语音包
 - `--local` — 将语音包和配置安装到当前项目的 `./.claude/` 目录（钩子始终全局注册到 `~/.claude/settings.json`）
 - `--global` — 显式全局安装（与默认相同）
 - `--init-local-config` — 仅创建 `./.claude/hooks/peon-ping/config.json`
@@ -73,7 +73,7 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/PeonPing/peon-ping/mai
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/PeonPing/peon-ping/main/install.sh | bash -s -- --all
-curl -fsSL https://raw.githubusercontent.com/PeonPing/peon-ping/main/install.sh | bash -s -- --packs=peon,glados
+curl -fsSL https://raw.githubusercontent.com/PeonPing/peon-ping/main/install.sh | bash -s -- --packs=peon,sc_kerrigan
 curl -fsSL https://raw.githubusercontent.com/PeonPing/peon-ping/main/install.sh | bash -s -- --local
 ```
 
@@ -114,6 +114,10 @@ peon-ping 实现了 [编码事件语音包规范（CESP）](https://github.com/P
 
 ```bash
 peon pause                # 静音
+peon volume               # 查看当前音量
+peon volume 0.7           # 设置音量（0.0–1.0）
+peon rotation             # 查看当前轮换模式
+peon rotation random      # 设置轮换模式（random|round-robin|agentskill）
 peon resume               # 取消静音
 peon status               # 查看暂停或活动状态
 peon packs list           # 列出已安装的语音包
@@ -508,20 +512,15 @@ peon mobile test          # 发送测试通知
 
 ## 语音包
 
-75 多个语音包，涵盖魔兽争霸、星际争霸、红色警戒、传送门、塞尔达、Dota 2、绝地潜兵2、上古卷轴等。默认安装包含 10 个精选英文语音包：
+75 多个语音包，涵盖魔兽争霸、星际争霸、红色警戒、传送门、塞尔达、Dota 2、绝地潜兵2、上古卷轴等。默认安装包含 5 个精选语音包：
 
 | 语音包 | 角色 | 声音 |
 |---|---|---|
 | `peon`（默认） | 兽人苦工（魔兽争霸 III） | "Ready to work?", "Work, work.", "Okie dokie." |
 | `peasant` | 人类农民（魔兽争霸 III） | "Yes, milord?", "Job's done!", "Ready, sir." |
-| `glados` | GLaDOS（传送门） | "Oh, it's you.", "You monster.", "Your entire team is dead." |
 | `sc_kerrigan` | 莎拉·凯瑞甘（星际争霸） | "I gotcha", "What now?", "Easily amused, huh?" |
 | `sc_battlecruiser` | 战列巡航舰（星际争霸） | "Battlecruiser operational", "Make it happen", "Engage" |
-| `ra2_kirov` | 基洛夫飞艇（红色警戒 2） | "Kirov reporting", "Bombardiers to your stations" |
-| `dota2_axe` | 斧王（Dota 2） | "Axe is ready!", "Axe-actly!", "Come and get it!" |
-| `duke_nukem` | 杜克·纽克姆 | "Hail to the king!", "Groovy.", "Balls of steel." |
-| `tf2_engineer` | 工程师（军团要塞 2） | "Sentry going up.", "Nice work!", "Cowboy up!" |
-| `hd2_helldiver` | 绝地潜兵（绝地潜兵 2） | "For democracy!", "How 'bout a nice cup of Liber-tea?" |
+| `glados` | GLaDOS（传送门） | "Oh, it's you.", "You monster.", "Your entire team is dead." |
 
 **[浏览所有语音包并试听 &rarr; openpeon.com/packs](https://openpeon.com/packs)**
 

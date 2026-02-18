@@ -57,12 +57,12 @@ curl -fsSL https://raw.githubusercontent.com/PeonPing/peon-ping/main/install.sh 
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/PeonPing/peon-ping/main/install.ps1" -UseBasicParsing | Invoke-Expression
 ```
 
-Installs 10 curated English packs by default. Re-run to update while preserving config/state. Or **[pick your packs interactively at peonping.com](https://peonping.com/#picker)** and get a custom install command.
+Installs 5 curated packs by default (Warcraft, StarCraft, Portal). Re-run to update while preserving config/state. Or **[pick your packs interactively at peonping.com](https://peonping.com/#picker)** and get a custom install command.
 
 Useful installer flags:
 
 - `--all` — install all available packs
-- `--packs=peon,glados,...` — install specific packs only
+- `--packs=peon,sc_kerrigan,...` — install specific packs only
 - `--local` — install packs and config into `./.claude/` for the current project (hooks are always registered globally in `~/.claude/settings.json`)
 - `--global` — explicit global install (same as default)
 - `--init-local-config` — create `./.claude/hooks/peon-ping/config.json` only
@@ -73,7 +73,7 @@ Examples:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/PeonPing/peon-ping/main/install.sh | bash -s -- --all
-curl -fsSL https://raw.githubusercontent.com/PeonPing/peon-ping/main/install.sh | bash -s -- --packs=peon,glados
+curl -fsSL https://raw.githubusercontent.com/PeonPing/peon-ping/main/install.sh | bash -s -- --packs=peon,sc_kerrigan
 curl -fsSL https://raw.githubusercontent.com/PeonPing/peon-ping/main/install.sh | bash -s -- --local
 ```
 
@@ -118,6 +118,10 @@ Other CLI commands:
 peon pause                # Mute sounds
 peon resume               # Unmute sounds
 peon status               # Check if paused or active
+peon volume               # Show current volume
+peon volume 0.7           # Set volume (0.0–1.0)
+peon rotation             # Show current rotation mode
+peon rotation random      # Set rotation mode (random|round-robin|agentskill)
 peon packs list           # List installed sound packs
 peon packs list --registry # Browse all available packs in the registry
 peon packs install <p1,p2> # Install packs from the registry
@@ -516,20 +520,15 @@ Mobile notifications fire on every event regardless of window focus — they're 
 
 ## Sound packs
 
-75+ packs across Warcraft, StarCraft, Red Alert, Portal, Zelda, Dota 2, Helldivers 2, Elder Scrolls, and more. The default install includes 10 curated English packs:
+75+ packs across Warcraft, StarCraft, Red Alert, Portal, Zelda, Dota 2, Helldivers 2, Elder Scrolls, and more. The default install includes 5 curated packs:
 
 | Pack | Character | Sounds |
 |---|---|---|
 | `peon` (default) | Orc Peon (Warcraft III) | "Ready to work?", "Work, work.", "Okie dokie." |
 | `peasant` | Human Peasant (Warcraft III) | "Yes, milord?", "Job's done!", "Ready, sir." |
-| `glados` | GLaDOS (Portal) | "Oh, it's you.", "You monster.", "Your entire team is dead." |
 | `sc_kerrigan` | Sarah Kerrigan (StarCraft) | "I gotcha", "What now?", "Easily amused, huh?" |
 | `sc_battlecruiser` | Battlecruiser (StarCraft) | "Battlecruiser operational", "Make it happen", "Engage" |
-| `ra2_kirov` | Kirov Airship (Red Alert 2) | "Kirov reporting", "Bombardiers to your stations" |
-| `dota2_axe` | Axe (Dota 2) | "Axe is ready!", "Axe-actly!", "Come and get it!" |
-| `duke_nukem` | Duke Nukem | "Hail to the king!", "Groovy.", "Balls of steel." |
-| `tf2_engineer` | Engineer (Team Fortress 2) | "Sentry going up.", "Nice work!", "Cowboy up!" |
-| `hd2_helldiver` | Helldiver (Helldivers 2) | "For democracy!", "How 'bout a nice cup of Liber-tea?" |
+| `glados` | GLaDOS (Portal) | "Oh, it's you.", "You monster.", "Your entire team is dead." |
 
 **[Browse all packs with audio previews &rarr; openpeon.com/packs](https://openpeon.com/packs)**
 

@@ -101,6 +101,8 @@ Key settings: volume, categories (per-event toggles), active_pack, pack_rotation
 
 ```bash
 peon pause / resume / status
+peon volume [0.0-1.0]
+peon rotation [random|round-robin|agentskill]
 peon packs list / use / install / next / remove
 peon notifications on / off / test
 peon mobile ntfy <topic>

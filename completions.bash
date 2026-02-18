@@ -32,7 +32,12 @@ _peon_completions() {
         return 0 ;;
       notifications)
         if [ "$cword" -eq 2 ]; then
-          COMPREPLY=( $(compgen -W "on off" -- "$cur") )
+          COMPREPLY=( $(compgen -W "on off overlay standard test" -- "$cur") )
+        fi
+        return 0 ;;
+      rotation)
+        if [ "$cword" -eq 2 ]; then
+          COMPREPLY=( $(compgen -W "random round-robin agentskill" -- "$cur") )
         fi
         return 0 ;;
       mobile)
@@ -45,7 +50,7 @@ _peon_completions() {
   fi
 
   # Top-level commands
-  COMPREPLY=( $(compgen -W "pause resume toggle status packs notifications mobile relay help" -- "$cur") )
+  COMPREPLY=( $(compgen -W "pause resume toggle status volume rotation packs notifications mobile relay help" -- "$cur") )
   return 0
 }
 

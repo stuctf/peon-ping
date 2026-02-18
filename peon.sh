@@ -871,6 +871,81 @@ print('NOTIF_STYLE=' + q(ns))
       *)
         echo "Usage: peon notifications <on|off|overlay|standard|test>" >&2; exit 1 ;;
     esac ;;
+  volume)
+    VOL_ARG="${2:-}"
+    if [ -z "$VOL_ARG" ]; then
+      python3 -c "
+import json
+try:
+    cfg = json.load(open('$CONFIG'))
+    print('peon-ping: volume ' + str(cfg.get('volume', 0.5)))
+except Exception:
+    print('peon-ping: volume 0.5')
+"
+      exit 0
+    fi
+    python3 -c "
+import json, sys
+config_path = '$CONFIG'
+try:
+    vol = float('$VOL_ARG')
+except ValueError:
+    print('peon-ping: invalid volume \"$VOL_ARG\" — use a number between 0.0 and 1.0', file=sys.stderr)
+    sys.exit(1)
+if not (0.0 <= vol <= 1.0):
+    print('peon-ping: volume must be between 0.0 and 1.0', file=sys.stderr)
+    sys.exit(1)
+try:
+    cfg = json.load(open(config_path))
+except Exception:
+    cfg = {}
+cfg['volume'] = round(vol, 2)
+json.dump(cfg, open(config_path, 'w'), indent=2)
+print(f'peon-ping: volume set to {vol}')
+"
+    _rc=$?; [ $_rc -eq 0 ] && sync_adapter_configs; exit $_rc ;;
+  rotation)
+    ROT_ARG="${2:-}"
+    if [ -z "$ROT_ARG" ]; then
+      python3 -c "
+import json
+try:
+    cfg = json.load(open('$CONFIG'))
+    mode = cfg.get('pack_rotation_mode', 'random')
+    rotation = cfg.get('pack_rotation', [])
+    print('peon-ping: rotation mode: ' + mode)
+    if rotation:
+        print('peon-ping: rotation packs: ' + ', '.join(rotation))
+    else:
+        print('peon-ping: rotation packs: (none — using active_pack)')
+except Exception:
+    print('peon-ping: rotation mode: random')
+"
+      exit 0
+    fi
+    case "$ROT_ARG" in
+      random|round-robin|agentskill)
+        python3 -c "
+import json
+config_path = '$CONFIG'
+try:
+    cfg = json.load(open(config_path))
+except Exception:
+    cfg = {}
+cfg['pack_rotation_mode'] = '$ROT_ARG'
+json.dump(cfg, open(config_path, 'w'), indent=2)
+print('peon-ping: rotation mode set to $ROT_ARG')
+"
+        _rc=$?; [ $_rc -eq 0 ] && sync_adapter_configs; exit $_rc ;;
+      *)
+        echo "Usage: peon rotation <random|round-robin|agentskill>" >&2
+        echo "" >&2
+        echo "Modes:" >&2
+        echo "  random        Pick a random pack each session (default)" >&2
+        echo "  round-robin   Cycle through packs in order each session" >&2
+        echo "  agentskill    Use /peon-ping-use to assign pack per session" >&2
+        exit 1 ;;
+    esac ;;
   packs)
     case "${2:-}" in
       list)
@@ -1475,6 +1550,8 @@ Commands:
   resume               Unmute sounds
   toggle               Toggle mute on/off
   status               Check if paused or active
+  volume [0.0-1.0]     Get or set volume level
+  rotation [mode]      Get or set pack rotation mode (random|round-robin|agentskill)
   notifications on        Enable desktop notifications
   notifications off       Disable desktop notifications
   notifications overlay   Use large overlay banners (default)
@@ -1841,6 +1918,7 @@ _roots = event_data.get('workspace_roots', [])
 cwd = event_data.get('cwd', '') or (_roots[0] if _roots else '')
 session_id = event_data.get('session_id', '') or event_data.get('conversation_id', '')
 perm_mode = event_data.get('permission_mode', '')
+session_source = event_data.get('source', '')
 
 # --- Load state ---
 try:
@@ -1939,8 +2017,12 @@ elif pack_rotation and rotation_mode in ('random', 'round-robin'):
             la_ts = last_active.get('timestamp', 0)
             la_evt = last_active.get('event', '')
             la_pack = last_active.get('pack', '')
+            # Resume: keep whatever pack was last used for this session
+            if session_source == 'resume' and la_pack in pack_rotation:
+                active_pack = la_pack
+                inherited = True
             # Context reset: recent activity from another session, no Stop/SessionEnd
-            if (la_sid and la_sid != session_id and la_pack in pack_rotation
+            elif (la_sid and la_sid != session_id and la_pack in pack_rotation
                     and la_evt not in ('Stop', 'SessionEnd')
                     and time.time() - la_ts < 15):
                 active_pack = la_pack

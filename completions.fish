@@ -26,6 +26,8 @@ complete -c peon -n __peon_no_subcommand -a pause -d "Mute sounds"
 complete -c peon -n __peon_no_subcommand -a resume -d "Unmute sounds"
 complete -c peon -n __peon_no_subcommand -a toggle -d "Toggle mute on/off"
 complete -c peon -n __peon_no_subcommand -a status -d "Show current status"
+complete -c peon -n __peon_no_subcommand -a volume -d "Get or set volume level"
+complete -c peon -n __peon_no_subcommand -a rotation -d "Get or set pack rotation mode"
 complete -c peon -n __peon_no_subcommand -a packs -d "Manage sound packs"
 complete -c peon -n __peon_no_subcommand -a notifications -d "Control desktop notifications"
 complete -c peon -n __peon_no_subcommand -a mobile -d "Configure mobile push notifications"
@@ -77,6 +79,11 @@ complete -c peon -n "__peon_using_subcommand mobile" -a on -d "Enable mobile not
 complete -c peon -n "__peon_using_subcommand mobile" -a off -d "Disable mobile notifications"
 complete -c peon -n "__peon_using_subcommand mobile" -a status -d "Show mobile config"
 complete -c peon -n "__peon_using_subcommand mobile" -a test -d "Send test notification"
+
+# rotation subcommands
+complete -c peon -n "__peon_using_subcommand rotation" -a random -d "Pick a random pack each session (default)"
+complete -c peon -n "__peon_using_subcommand rotation" -a round-robin -d "Cycle through packs in order"
+complete -c peon -n "__peon_using_subcommand rotation" -a agentskill -d "Assign pack per session via /peon-ping-use"
 
 # notifications subcommands
 complete -c peon -n "__peon_using_subcommand notifications" -a on -d "Enable desktop notifications"

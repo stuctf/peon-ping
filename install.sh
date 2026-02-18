@@ -87,7 +87,7 @@ if [ "$INIT_LOCAL_CONFIG" = true ]; then
 fi
 
 # Default packs (curated English set installed by default)
-DEFAULT_PACKS="peon peasant glados sc_kerrigan sc_battlecruiser ra2_kirov dota2_axe duke_nukem tf2_engineer hd2_helldiver"
+DEFAULT_PACKS="peon peasant sc_kerrigan sc_battlecruiser glados"
 
 
 # --- Platform detection ---
