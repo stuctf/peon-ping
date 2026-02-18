@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.2.2 (2026-02-18)
+
+### Fixed
+- `peon-play` and `mac-overlay.js` now resolve correctly on Homebrew/adapter installs where `$PEON_DIR` is remapped (same root cause as the `pack-download.sh` issue fixed in v2.2.1)
+- Overlay notifications fall through to standard notifications when `mac-overlay.js` is not found rather than silently failing
+- `USE_SOUND_EFFECTS_DEVICE` unbound variable crash in `play_sound` when called from preview context
+
 ## v2.2.1 (2026-02-18)
 
 ### Fixed

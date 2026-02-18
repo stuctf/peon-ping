@@ -45,27 +45,25 @@ fi
 CONFIG="$PEON_DIR/config.json"
 STATE="$PEON_DIR/.state.json"
 
-# --- Shared resolver for pack-download.sh (local + Homebrew/adapter installs) ---
+# --- Resolve a bundled script from scripts/ (handles local + Homebrew/Cellar installs) ---
+# Prints the resolved path on success, prints nothing on failure.
+# Skips the BASH_SOURCE fallback in test mode to preserve "missing script" test cases.
+find_bundled_script() {
+  local name="$1" path
+  # Standard local install: $PEON_DIR is the install root
+  path="$PEON_DIR/scripts/$name"
+  [ -f "$path" ] && { printf '%s\n' "$path"; return 0; }
+  # Homebrew/adapter install: peon.sh lives in the Cellar, scripts/ is a sibling
+  if [ "${PEON_TEST:-0}" != "1" ]; then
+    path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/scripts/$name"
+    [ -f "$path" ] && { printf '%s\n' "$path"; return 0; }
+  fi
+  return 1
+}
+
 resolve_pack_download() {
   local pack_dl
-
-  # Standard local install: $PEON_DIR is the install root
-  pack_dl="$PEON_DIR/scripts/pack-download.sh"
-  if [ -f "$pack_dl" ]; then
-    printf '%s\n' "$pack_dl"
-    return 0
-  fi
-
-  # Homebrew/adapter install: peon.sh lives in the Cellar, scripts/ is a sibling.
-  # Skipped in test mode to allow "missing pack-download.sh" test cases to work.
-  if [ "${PEON_TEST:-0}" != "1" ]; then
-    pack_dl="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/scripts/pack-download.sh"
-    if [ -f "$pack_dl" ]; then
-      printf '%s\n' "$pack_dl"
-      return 0
-    fi
-  fi
-
+  pack_dl="$(find_bundled_script "pack-download.sh")" && { printf '%s\n' "$pack_dl"; return 0; }
   echo "Error: pack-download.sh not found. Run 'peon update' or reinstall peon-ping to fix." >&2
   return 1
 }
@@ -199,8 +197,9 @@ play_sound() {
   case "$PLATFORM" in
     mac)
       local player="afplay"
-      if [ -x "$PEON_DIR/scripts/peon-play" ] && [ "$USE_SOUND_EFFECTS_DEVICE" != "false" ]; then
-        player="$PEON_DIR/scripts/peon-play"
+      if [ "${USE_SOUND_EFFECTS_DEVICE:-true}" != "false" ]; then
+        local _peon_play
+        _peon_play="$(find_bundled_script "peon-play")" && [ -x "$_peon_play" ] && player="$_peon_play"
       fi
       if [ "${PEON_TEST:-0}" = "1" ]; then
         "$player" -v "$vol" "$file" >/dev/null 2>&1
@@ -265,9 +264,11 @@ send_notification() {
 
   case "$PLATFORM" in
     mac)
-      if [ "${NOTIF_STYLE:-overlay}" = "overlay" ]; then
+      local overlay_script=""
+      [ "${NOTIF_STYLE:-overlay}" = "overlay" ] && \
+        overlay_script="$(find_bundled_script "mac-overlay.js")" 2>/dev/null || true
+      if [ -n "$overlay_script" ]; then
         # JXA Cocoa overlay — large, visible banner on all screens
-        local overlay_script="$PEON_DIR/scripts/mac-overlay.js"
         local icon_arg=""
         [ -f "$icon_path" ] && icon_arg="$icon_path"
         _run_overlay() (
