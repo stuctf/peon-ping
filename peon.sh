@@ -2058,7 +2058,7 @@ else:
 
 # --- Track last active session for context-reset detection ---
 state['last_active'] = dict(session_id=session_id, pack=active_pack,
-                            timestamp=time.time(), event=event)
+                            timestamp=time.time(), event=event, cwd=cwd)
 state_dirty = True
 
 # --- Project name ---
